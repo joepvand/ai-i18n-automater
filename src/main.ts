@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import { readFileSync, writeFileSync } from 'fs';
 import { request as httpsRequest } from 'https';
 import { request as httpRequest } from 'http';

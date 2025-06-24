@@ -1,17 +1,18 @@
 {
-  "name": "ai-i18n-automater",
-  "version": "1.0.0",
-  "description": "Simple i18n translation tool for GitLab CI",
-  "main": "main.js",
+  "name": "ai-i18n-automator",
+  "version": "1.0.8",
+  "description": "CLI tool to auto-translate i18n JSON files using OpenAI-compatible APIs",
+  "main": "dist/main.js",
+  "bin": {
+    "ai-i18n-automator": "dist/main.js"
+  },
   "scripts": {
     "build": "tsc",
-    "translate": "node main.js"
+    "start": "node dist/main.js"
   },
-  "dependencies": {
-    "typescript": "^5.0.0",
-    "@types/node": "^20.0.0"
-  },
+  "author": "Joep van Diessen",
+  "license": "MIT",
   "devDependencies": {
-    "ts-node": "^10.9.0"
+    "typescript": "^5.0.0"
   }
 }
