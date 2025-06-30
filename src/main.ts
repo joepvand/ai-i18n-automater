@@ -111,7 +111,22 @@ async function translateJson(fullJson: Translations, targetLang: string): Promis
   });
 }
 
-// --- Main ---
+import { existsSync } from 'fs';
+
+function getTranslationDiff(
+  source: Translations,
+  existing: Translations
+): Translations {
+  const diff: Translations = {};
+  for (const key of Object.keys(source)) {
+    if (!(key in existing)) {
+      diff[key] = source[key];
+    }
+  }
+  return diff;
+}
+
+
 (async () => {
   console.log(`🔍 Loaded ${sourceFile} with ${Object.keys(sourceData).length} keys`);
   console.log(`🌍 Translating to: ${targetLangs.join(', ')}`);
@@ -119,12 +134,34 @@ async function translateJson(fullJson: Translations, targetLang: string): Promis
   console.log(`📂 Output directory: ${outDir}`);
 
   for (const lang of targetLangs) {
+    const outputFile = path.join(outDir, `${lang}.json`);
+    let existingData: Translations = {};
+
+    if (existsSync(outputFile)) {
+      try {
+        existingData = JSON.parse(readFileSync(outputFile, 'utf8'));
+      } catch (err) {
+        console.warn(`⚠️ Could not read ${outputFile}, continuing with empty translation.`);
+      }
+    }
+
+    const diff = getTranslationDiff(sourceData, existingData);
+    const diffKeys = Object.keys(diff);
+
+    if (diffKeys.length === 0) {
+      console.log(`✅ ${lang}.json is up-to-date`);
+      continue;
+    }
+
+    console.log(`🌐 Translating ${diffKeys.length} new/changed keys for "${lang}"...`);
+
     try {
-      console.log(`🌐 Translating to "${lang}"...`);
-      const translated = await translateJson(sourceData, lang);
-      const outputFile = path.join(outDir, `${lang}.json`);
-      writeFileSync(outputFile, JSON.stringify(translated, null, 2));
-      console.log(`✅ Wrote: ${outputFile}`);
+      const translated = await translateJson(diff, lang);
+      const merged = { ...existingData, ...translated };
+
+
+      writeFileSync(outputFile, JSON.stringify(merged, null, 2));
+      console.log(`✅ Updated: ${outputFile}`);
     } catch (err) {
       console.error(`❌ Failed to translate "${lang}": ${(err as Error).message}`);
     }
