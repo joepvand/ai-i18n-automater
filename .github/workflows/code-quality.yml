@@ -1,0 +1,57 @@
+name: Code Quality
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  code-quality:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        cache-dependency-path: src/package-lock.json
+        
+    - name: Install dependencies
+      run: |
+        cd src
+        npm ci
+        
+    - name: TypeScript type checking
+      run: |
+        cd src
+        npx tsc --noEmit
+        
+    - name: Run tests with coverage
+      run: |
+        cd src
+        npm test -- --coverage --watchAll=false --coverageReporters=text-lcov > coverage.lcov
+        
+    - name: Check test coverage threshold
+      run: |
+        cd src
+        npm test -- --coverage --watchAll=false --coverageThreshold='{"global":{"branches":80,"functions":80,"lines":80,"statements":80}}'
+        
+    - name: Security audit
+      run: |
+        cd src
+        npm audit --audit-level=moderate
+        
+    - name: Check for outdated dependencies
+      run: |
+        cd src
+        npm outdated || true
+        
+    - name: Validate package.json
+      run: |
+        cd src
+        npm ls --depth=0
