@@ -5,52 +5,28 @@ import { request as httpsRequest } from 'https';
 import { request as httpRequest } from 'http';
 import { parse as parseUrl } from 'url';
 import * as path from 'path';
+import { getArg, getAllArgs, getTranslationDiff, createTranslationPrompt, type Translations } from './utils';
 
 // --- CLI parsing ---
 const [,, sourceFile, ...restArgs] = process.argv;
 
-function getArg(name: string): string | null {
-  const i = restArgs.indexOf(name);
-  return i !== -1 ? restArgs[i + 1] : null;
-}
-
-function getAllArgs(name: string): string[] {
-  const result: string[] = [];
-  let index = restArgs.indexOf(name);
-  while (index !== -1) {
-    const value = restArgs[index + 1];
-    if (value && !value.startsWith('--')) result.push(value);
-    index = restArgs.indexOf(name, index + 1);
-  }
-  return result;
-}
-
-const targetLangs: string[] = getAllArgs('--to');
-const apiUrl = getArg('--apiUrl') || 'http://localhost:11434/v1/chat/completions';
-const apiKey = getArg('--apiKey') || '';
-const model = getArg('--model') || 'gpt-3.5-turbo';
-const reasoning = getArg('--reasoning') === 'true'; // default = false
-const outDir = getArg('--outDir') || '.';
+const targetLangs: string[] = getAllArgs(restArgs, '--to');
+const apiUrl = getArg(restArgs, '--apiUrl') || 'http://localhost:11434/v1/chat/completions';
+const apiKey = getArg(restArgs, '--apiKey') || '';
+const model = getArg(restArgs, '--model') || 'gpt-3.5-turbo';
+const reasoning = getArg(restArgs, '--reasoning') === 'true'; // default = false
+const outDir = getArg(restArgs, '--outDir') || '.';
 
 if (!sourceFile || targetLangs.length === 0) {
   console.error('❌ Usage: node translate-i18n.js en.json --to nl --to fr [--apiUrl] [--apiKey] [--model] [--reasoning true] [--outDir ./dir]');
   process.exit(1);
 }
 
-type Translations = Record<string, string>;
 const sourceData: Translations = JSON.parse(readFileSync(sourceFile, 'utf8'));
 
 // --- Translate entire file at once ---
 async function translateJson(fullJson: Translations, targetLang: string): Promise<Translations> {
-  let instruction = `
-    [no prose]
-    [Output only JSON]
-    You are a translation assistant. Translate only the values in the following JSON object from English to ${targetLang}. Keep the keys and structure identical. Return valid JSON only. DO NOT PERFORM FORMATTING, PROVIDE RAW JSON TEXT ONLY`;
-  if (!reasoning) {
-    instruction = '/no-think ' + instruction;
-  }
-
-  const prompt = `${instruction}\n\n${JSON.stringify(fullJson, null, 2)}`;
+  const prompt = createTranslationPrompt(fullJson, targetLang, reasoning);
 
   const body = JSON.stringify({
     model,
@@ -112,19 +88,6 @@ async function translateJson(fullJson: Translations, targetLang: string): Promis
 }
 
 import { existsSync } from 'fs';
-
-function getTranslationDiff(
-  source: Translations,
-  existing: Translations
-): Translations {
-  const diff: Translations = {};
-  for (const key of Object.keys(source)) {
-    if (!(key in existing)) {
-      diff[key] = source[key];
-    }
-  }
-  return diff;
-}
 
 
 (async () => {

@@ -81,3 +81,24 @@ Then `nl.json` will contain something like:
 * ✅ [OpenRouter](https://openrouter.ai/)
 
 ---
+
+### 🧪 Development & Testing
+
+The project includes comprehensive unit tests for all utility functions:
+
+```bash
+cd src
+npm install
+npm test              # Run all tests
+npm run test:watch    # Run tests in watch mode
+npm run build         # Build the project
+```
+
+**Test Coverage:**
+- ✅ Command line argument parsing (`getArg`, `getAllArgs`)
+- ✅ Translation diff calculation (`getTranslationDiff`)
+- ✅ Data validation (`validateTranslations`)
+- ✅ Prompt generation (`createTranslationPrompt`)
+- ✅ CLI integration tests
+
+---
