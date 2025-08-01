@@ -1,4 +1,7 @@
 ## 🈯️ i18n Auto-Translator (OpenAI-Compatible)
+[![CI](https://github.com/joepvand/ai-i18n-automater/actions/workflows/ci.yml/badge.svg)](https://github.com/joepvand/ai-i18n-automater/actions/workflows/ci.yml)
+[![Code Quality](https://github.com/joepvand/ai-i18n-automater/actions/workflows/code-quality.yml/badge.svg)](https://github.com/joepvand/ai-i18n-automater/actions/workflows/code-quality.yml)
+[![Node.js Package](https://github.com/joepvand/ai-i18n-automater/actions/workflows/npm-publish.yml/badge.svg)](https://github.com/joepvand/ai-i18n-automater/actions/workflows/npm-publish.yml)
 
 This is a minimal CLI tool to **automatically translate your `en.json` i18n files** to other languages using an **OpenAI-compatible API** (e.g. [Ollama](https://ollama.com), [LocalAI](https://localai.io), OpenRouter, or OpenAI itself).
 
@@ -84,7 +87,7 @@ Then `nl.json` will contain something like:
 
 ### 🧪 Development & Testing
 
-The project includes comprehensive unit tests for all utility functions:
+The project includes comprehensive unit tests for all utility functions and automated CI/CD pipelines:
 
 ```bash
 cd src
@@ -100,5 +103,11 @@ npm run build         # Build the project
 - ✅ Data validation (`validateTranslations`)
 - ✅ Prompt generation (`createTranslationPrompt`)
 - ✅ CLI integration tests
+
+**CI/CD Pipeline:**
+- ✅ **Continuous Integration**: Automated testing on Node.js 18.x, 20.x, and 22.x
+- ✅ **Code Quality**: TypeScript type checking, coverage thresholds, security audits
+- ✅ **Automated Publishing**: Tests run before every npm package release
+- ✅ **Cross-platform**: Tests run on Ubuntu Linux in GitHub Actions
 
 ---

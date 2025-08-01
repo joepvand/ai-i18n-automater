@@ -8,17 +8,24 @@ on:
     types: [created]
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - run: cd src && npm ci
+          cache: 'npm'
+          cache-dependency-path: src/package-lock.json
+      - name: Install dependencies
+        run: cd src && npm ci
+      - name: Run tests
+        run: cd src && npm test
+      - name: Build project
+        run: cd src && npm run build
 
   publish-npm:
-    needs: build
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

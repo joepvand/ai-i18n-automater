@@ -1,0 +1,98 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x, 22.x]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        cache-dependency-path: src/package-lock.json
+        
+    - name: Install dependencies
+      run: |
+        cd src
+        npm ci
+        
+    - name: Run linting (if available)
+      run: |
+        cd src
+        # Skip linting if not configured
+        npm run lint --if-present
+        
+    - name: Run tests
+      run: |
+        cd src
+        npm test
+        
+    - name: Run tests with coverage
+      run: |
+        cd src
+        npm test -- --coverage --watchAll=false
+        
+    - name: Upload coverage reports to Codecov
+      if: matrix.node-version == '20.x'
+      uses: codecov/codecov-action@v3
+      with:
+        directory: ./src/coverage
+        fail_ci_if_error: false
+        verbose: true
+        
+    - name: Build project
+      run: |
+        cd src
+        npm run build
+        
+    - name: Test CLI functionality
+      run: |
+        cd src
+        # Test that the CLI shows usage when no args provided
+        node dist/main.js || [ $? -eq 1 ]
+        
+  build-and-test:
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        cache-dependency-path: src/package-lock.json
+        
+    - name: Install dependencies
+      run: |
+        cd src
+        npm ci
+        
+    - name: Build and package
+      run: |
+        cd src
+        npm run build
+        
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: dist-files
+        path: src/dist/
+        retention-days: 7
